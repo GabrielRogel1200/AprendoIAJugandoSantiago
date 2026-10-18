@@ -23,6 +23,7 @@ import androidx.lifecycle.lifecycleScope
 import cl.triskeledu.aprendoia.data.database.AppDatabase
 import cl.triskeledu.aprendoia.data.entities.*
 import cl.triskeledu.aprendoia.data.repository.*
+import cl.triskeledu.aprendoia.domain.AuthValidator
 import cl.triskeledu.aprendoia.domain.PasswordHasher
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -130,10 +131,39 @@ class AppScreenActivity: AppCompatActivity() {
         val spinner=Spinner(this).apply { adapter=ArrayAdapter(this@AppScreenActivity,android.R.layout.simple_spinner_dropdown_item,avatars) }
         page.addView(spinner)
         button("Crear jugador") {
-            lifecycleScope.launch {
-                val result=repo.register(name.text.toString(),alias.text.toString(),email.text.toString(),phone.text.toString(),password.text.toString(),address.text.toString(),avatars[spinner.selectedItemPosition])
-                if(result.isSuccess){toast("Jugador creado correctamente");startActivity(Intent(this@AppScreenActivity,SeleccionJugadorActivity::class.java));finish()}
-                else toast(result.exceptionOrNull()?.message?:"Error al registrar")
+            // La validación de negocio sigue centralizada en AuthValidator.
+            // Esta pantalla solamente presenta los errores junto a cada campo.
+            val inputs = mapOf(
+                "name" to name,
+                "alias" to alias,
+                "email" to email,
+                "phone" to phone,
+                "password" to password
+            )
+            inputs.values.forEach { it.error = null }
+            val errors = AuthValidator.validate(
+                name.text.toString(), alias.text.toString(), email.text.toString(),
+                phone.text.toString(), password.text.toString()
+            )
+            if (errors.isNotEmpty()) {
+                errors.forEach { (key, message) -> inputs[key]?.error = message }
+                inputs.entries.firstOrNull { errors.containsKey(it.key) }?.value?.requestFocus()
+                toast("Revisa los campos marcados para continuar")
+            } else {
+                lifecycleScope.launch {
+                    val result = repo.register(
+                        name.text.toString(), alias.text.toString(), email.text.toString(),
+                        phone.text.toString(), password.text.toString(),
+                        address.text.toString(), avatars[spinner.selectedItemPosition]
+                    )
+                    if (result.isSuccess) {
+                        toast("Jugador creado correctamente")
+                        startActivity(Intent(this@AppScreenActivity, SeleccionJugadorActivity::class.java))
+                        finish()
+                    } else {
+                        toast(result.exceptionOrNull()?.message ?: "Error al registrar")
+                    }
+                }
             }
         }
     }
