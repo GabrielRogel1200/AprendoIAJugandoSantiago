@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="#EAF3FF">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🤖"
+        android:textSize="75sp"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/txtTitulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Aprendo IA Jugando en Santiago"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#123A70"
+        android:gravity="center"
+        android:layout_marginTop="20dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="¡Descubre, aprende y gana puntos explorando Santiago!"
+        android:textSize="17sp"
+        android:textColor="#475569"
+        android:gravity="center"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📍 Explora lugares turísticos&#10;📷 Escanea códigos QR&#10;🏆 Acumula puntos y aprende IA"
+        android:textSize="17sp"
+        android:lineSpacingExtra="12dp"
+        android:layout_marginTop="36dp"
+        android:layout_marginBottom="36dp" />
+
+    <Button
+        android:id="@+id/btnComenzar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Comenzar"
+        android:textSize="18sp"
+        android:backgroundTint="#1769E0" />
+
+</LinearLayout>

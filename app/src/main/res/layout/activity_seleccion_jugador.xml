@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#EAF3FF">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🤖"
+        android:textSize="65sp"
+        android:gravity="center"
+        android:layout_marginTop="40dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Selecciona tu jugador"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="#123A70"
+        android:gravity="center"
+        android:layout_marginTop="20dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Elige un perfil para comenzar tu aventura"
+        android:textSize="16sp"
+        android:textColor="#475569"
+        android:gravity="center"
+        android:layout_marginTop="12dp"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="24dp">
+
+        <LinearLayout
+            android:id="@+id/contenedorJugadores"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+
+    </ScrollView>
+
+    <Button
+        android:id="@+id/btnRegistrarJugador"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CREAR NUEVO JUGADOR"
+        android:layout_marginTop="16dp"/>
+
+</LinearLayout>
