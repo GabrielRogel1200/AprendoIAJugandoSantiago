@@ -1,4 +1,4 @@
-MEJORA 03 — fix: centralizar validaciones de perfil puntos y videos
+MEJORA 04 — feat: mejorar accesibilidad y teclados de formularios
 
 Este ZIP contiene una copia COMPLETA y ACUMULATIVA del proyecto Android, con las mejoras anteriores incluidas.
 
@@ -7,6 +7,6 @@ Este ZIP contiene una copia COMPLETA y ACUMULATIVA del proyecto Android, con las
 3. Copiar SU CONTENIDO a la carpeta local AprendoIAJugando conectada a Git.
 4. Aceptar reemplazo de archivos existentes. NO BORRAR la carpeta .git del proyecto local.
 5. En Android Studio: sincronizar y ejecutar Build > Make Project; probar las funciones modificadas.
-6. En Git Bash, desde la carpeta local: git status; git add -A; git diff --cached --stat; git commit -m "fix: centralizar validaciones de perfil puntos y videos"; git push origin main.
+6. En Git Bash, desde la carpeta local: git status; git add -A; git diff --cached --stat; git commit -m "feat: mejorar accesibilidad y teclados de formularios"; git push origin main.
 
 IMPORTANTE: no hacer commit si falla la compilación. Estos archivos no se han compilado en un entorno Android en este servicio.

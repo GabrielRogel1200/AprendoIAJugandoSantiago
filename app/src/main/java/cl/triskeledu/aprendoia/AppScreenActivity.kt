@@ -100,12 +100,32 @@ class AppScreenActivity: AppCompatActivity() {
         page.addView(t);return t
     }
     private fun button(label:String,click:()->Unit) {
-        page.addView(Button(this).apply { text=label;isAllCaps=false;setOnClickListener { click() } })
+        page.addView(Button(this).apply {
+            text=label
+            isAllCaps=false
+            contentDescription=label
+            minHeight=(48*resources.displayMetrics.density).toInt()
+            setOnClickListener { click() }
+        })
     }
     private fun field(hint:String,initial:String="",password:Boolean=false):EditText {
-        val e=EditText(this).apply { this.hint=hint;setText(initial);textSize=16f
-            if(password) inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-        };page.addView(e);return e
+        val e=EditText(this).apply {
+            this.hint=hint
+            contentDescription=hint
+            setText(initial)
+            textSize=16f
+            isSingleLine=true
+            inputType=when {
+                password -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                hint.contains("Correo",ignoreCase=true) -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+                hint.contains("Teléfono",ignoreCase=true) -> InputType.TYPE_CLASS_PHONE
+                hint.contains("Latitud",ignoreCase=true) || hint.contains("Longitud",ignoreCase=true) ->
+                    InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL or InputType.TYPE_NUMBER_FLAG_SIGNED
+                else -> InputType.TYPE_CLASS_TEXT
+            }
+        }
+        page.addView(e)
+        return e
     }
     private fun render() {
         when(screen) {
