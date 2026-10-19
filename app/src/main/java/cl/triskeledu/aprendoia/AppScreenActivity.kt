@@ -25,6 +25,7 @@ import cl.triskeledu.aprendoia.data.database.AppDatabase
 import cl.triskeledu.aprendoia.data.entities.*
 import cl.triskeledu.aprendoia.data.repository.*
 import cl.triskeledu.aprendoia.domain.AuthValidator
+import cl.triskeledu.aprendoia.domain.FormValidators
 import cl.triskeledu.aprendoia.domain.PasswordHasher
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -353,7 +354,9 @@ class AppScreenActivity: AppCompatActivity() {
             val phone=field("Teléfono",user.phone?:"");val address=field("Dirección",user.address?:"")
             val notify=CheckBox(this@AppScreenActivity).apply {text="Notificaciones habilitadas";isChecked=user.notificationsEnabled};page.addView(notify)
             button("Guardar cambios") {lifecycleScope.launch {
-                if(name.text.toString().trim().length<2){name.error="Nombre inválido";return@launch}
+                val errors=FormValidators.profile(name.text.toString(),email.text.toString(),phone.text.toString())
+                name.error=errors["name"];email.error=errors["email"];phone.error=errors["phone"]
+                if(errors.isNotEmpty()) {toast("Revisa los campos marcados");return@launch}
                 actions.updateUser(user.copy(name=name.text.toString().trim(),email=email.text.toString().ifBlank{null},phone=phone.text.toString().ifBlank{null},address=address.text.toString(),notificationsEnabled=notify.isChecked))
                 toast("Perfil actualizado")
             }}
@@ -375,8 +378,11 @@ class AppScreenActivity: AppCompatActivity() {
         val lat=field("Latitud, ej. -33.4372");val lon=field("Longitud, ej. -70.6506")
         val qr=field("Contenido QR único")
         button("Guardar punto") {lifecycleScope.launch {
-            val a=lat.text.toString().toDoubleOrNull();val b=lon.text.toString().toDoubleOrNull()
-            if(title.text.isBlank()||a==null||b==null||a !in -90.0..90.0||b !in -180.0..180.0||qr.text.isBlank()) {toast("Revisa título, coordenadas y QR");return@launch}
+            val errors=FormValidators.point(title.text.toString(),lat.text.toString(),lon.text.toString(),qr.text.toString())
+            title.error=errors["title"];lat.error=errors["latitude"]
+            lon.error=errors["longitude"];qr.error=errors["qr"]
+            if(errors.isNotEmpty()){toast("Revisa los campos marcados");return@launch}
+            val a=lat.text.toString().toDouble();val b=lon.text.toString().toDouble()
             actions.savePoint(PointEntity(title=title.text.toString(),description=desc.text.toString(),latitude=a,longitude=b,qrPayload=qr.text.toString()))
             toast("Punto guardado");render()
         }}
@@ -399,7 +405,9 @@ class AppScreenActivity: AppCompatActivity() {
         val title=field("Título");val topic=field("Tema de IA");val author=field("Autor")
         val uri=field("URL de video MP4 o HTTPS");val intro=field("Descripción")
         button("Guardar cápsula") {lifecycleScope.launch {
-            if(title.text.isBlank()||topic.text.isBlank()||!uri.text.toString().startsWith("https://")) {toast("Completa título, tema y URL HTTPS");return@launch}
+            val errors=FormValidators.video(title.text.toString(),topic.text.toString(),uri.text.toString())
+            title.error=errors["title"];topic.error=errors["topic"];uri.error=errors["uri"]
+            if(errors.isNotEmpty()){toast("Revisa los campos marcados");return@launch}
             actions.saveVideo(VideoEntity(title=title.text.toString(),topic=topic.text.toString(),author=author.text.toString(),videoUri=uri.text.toString(),introduction=intro.text.toString(),approved=false))
             toast("Cápsula guardada, pendiente de aprobación");render()
         }}
