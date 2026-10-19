@@ -15,6 +15,7 @@ import android.provider.MediaStore
 import android.text.InputType
 import android.view.Gravity
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -82,6 +83,11 @@ class AppScreenActivity: AppCompatActivity() {
         val scroll=ScrollView(this).apply { setBackgroundColor(Color.rgb(234,243,255));isFillViewport=true }
         page=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL;setPadding(22,22,22,22) }
         scroll.addView(page);setContentView(scroll)
+        // Entrada suave que indica al usuario el cambio de pantalla.
+        page.alpha=0f
+        page.translationY=18f * resources.displayMetrics.density
+        page.animate().alpha(1f).translationY(0f).setDuration(260L)
+            .setInterpolator(AccelerateDecelerateInterpolator()).start()
         if(screen!="login" && screen!="register") {
             button("← Volver") { finish() }
         }
@@ -258,7 +264,10 @@ class AppScreenActivity: AppCompatActivity() {
     private fun qrResult() {
         setup("🎉 ¡QR encontrado!")
         val score=intent.getIntExtra("score",0)
-        text("+$score puntos",27,true)
+        val pointsLabel=text("+$score puntos",27,true)
+        pointsLabel.scaleX=0.75f;pointsLabel.scaleY=0.75f
+        pointsLabel.animate().scaleX(1f).scaleY(1f).setDuration(420L)
+            .setInterpolator(AccelerateDecelerateInterpolator()).start()
         lifecycleScope.launch { actions.point(pointId)?.let { p ->
             text(p.title,20,true)
             if(p.isTouristic) text("⭐ Este punto permite una selfie turística con validación para obtener hasta 100 puntos extra")

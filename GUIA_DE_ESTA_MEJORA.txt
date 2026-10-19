@@ -1,0 +1,12 @@
+MEJORA 02 — feat: animar transiciones y resultado QR
+
+Este ZIP contiene una copia COMPLETA y ACUMULATIVA del proyecto Android, con las mejoras anteriores incluidas.
+
+1. Extraer ZIP.
+2. Abrir la carpeta AprendoIAJugando extraída.
+3. Copiar SU CONTENIDO a la carpeta local AprendoIAJugando conectada a Git.
+4. Aceptar reemplazo de archivos existentes. NO BORRAR la carpeta .git del proyecto local.
+5. En Android Studio: sincronizar y ejecutar Build > Make Project; probar las funciones modificadas.
+6. En Git Bash, desde la carpeta local: git status; git add -A; git diff --cached --stat; git commit -m "feat: animar transiciones y resultado QR"; git push origin main.
+
+IMPORTANTE: no hacer commit si falla la compilación. Estos archivos no se han compilado en un entorno Android en este servicio.
