@@ -1,0 +1,23 @@
+ETAPA 04 — PRIMERA PANTALLA EN JETPACK COMPOSE + MATERIAL 3
+
+Base: EP4 Etapa 03, incluye Android + backend Spring Boot + OpenStreetMap + QR.
+CAMBIOS:
+- Se habilita el plugin Compose compatible con Kotlin 2.0.21.
+- Se agrega Compose BOM, Material 3 y Compose UI.
+- Se migra SOLO el panel del CLIENTE (dashboard) a Compose con tarjetas y diseño responsive.
+- El estado de la pantalla se actualiza desde Room mediante estado Compose.
+- Se conservan navegación, map, QR, API externa y pantalla REST originales.
+
+REEMPLAZO: extraer ZIP; copiar contenido de AprendoIAJugandoSantiago-main a la carpeta CLONADA desde GitHub, conservar .git.
+PRUEBAS: Android Studio: Sync Gradle; Build > Assemble Project; iniciar como CLIENT; entrar a mapa, QR, clima, servidor y volver.
+Nota: la descarga inicial de Compose puede requerir internet.
+La migración es parcial: NO se afirma que todas las pantallas utilicen Jetpack Compose.
+
+GIT (solo luego de compilar y verificar):
+ git status
+ git add .
+ git diff --cached --stat
+ git commit -m "feat: migrar dashboard de jugador a Jetpack Compose Material 3"
+ git push origin main
+
+No incluir secretos, carpetas build ni archivos generados del backend. Verificar plazo académico antes del push.

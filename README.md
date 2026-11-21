@@ -94,3 +94,6 @@ Se añadió `backend/`, microservicio REST Spring Boot independiente con H2 para
 
 ## EP4 Etapa 03 — App conectada a Spring Boot
 La vista **Lugares del servidor** consulta la API `GET /api/v1/points` con Retrofit. La cuenta Administrador puede usar una interfaz de demostración para crear, editar y eliminar lugares por POST/PUT/DELETE; la autenticación del servidor aún no está implementada. El flujo de QR del jugador sigue funcionando localmente con Room (sin sincronización automática). Dirección inicial del emulador: `http://10.0.2.2:8080/`; para teléfono físico usar IP LAN del PC. HTTP habilitado exclusivamente en `debug`. Ver `GUIA_EVALUACION_4_ETAPA_03.txt`.
+
+## EP4 Etapa 04: migración incremental a Compose
+El dashboard de jugador utiliza Jetpack Compose + Material 3. Las demás pantallas conservan la implementación Android View/XML hasta fases posteriores. Ver `GUIA_EVALUACION_4_ETAPA_04.txt`.

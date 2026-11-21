@@ -23,6 +23,9 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.ComposeView
+import cl.triskeledu.aprendoia.ui.ComposeDashboardScreen
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import cl.triskeledu.aprendoia.data.database.AppDatabase
@@ -259,27 +262,48 @@ class AppScreenActivity: AppCompatActivity() {
             }
         }
     }
+    /** Panel del jugador migrado a Jetpack Compose + Material 3.
+     * El resto de pantallas permanece operativo y se migrará progresivamente.
+     */
     private fun dashboard() {
-        setup("Mi aventura en Santiago","Panel principal del cliente")
+        val displayName = mutableStateOf("Jugador")
+        val totalScore = mutableStateOf(0)
+        val visitedPlaces = mutableStateOf(0)
+        val watchedVideos = mutableStateOf(0)
+        val loading = mutableStateOf(true)
+        setContentView(ComposeView(this).apply {
+            setContent {
+                ComposeDashboardScreen(
+                    userName = displayName.value,
+                    score = totalScore.value,
+                    placesCount = visitedPlaces.value,
+                    watchedCount = watchedVideos.value,
+                    loading = loading.value,
+                    onNavigate = { route -> go(route) }
+                )
+            }
+        })
         lifecycleScope.launch {
-            val user=actions.user(userId)?:return@launch
-            if(user.role!="CLIENT"){toast("Acceso restringido a clientes");finish();return@launch}
-            text("¡Hola, ${user.name}!",21,true)
-            val score=db.gameDao().totalPoints(userId)
-            val found=db.gameDao().observeDiscoveries(userId).first()
-            text("🏆 $score puntos  ·  ${found.size} códigos QR",21,true)
-            text("${found.count{it.watchedAt!=null}} videos revisados · ${found.size} lugares visitados")
+            try {
+                val user = actions.user(userId)
+                if (user == null || user.role != "CLIENT") {
+                    toast("Acceso restringido a jugadores")
+                    finish()
+                    return@launch
+                }
+                displayName.value = user.name
+                totalScore.value = db.gameDao().totalPoints(userId)
+                val discoveries = db.gameDao().observeDiscoveries(userId).first()
+                visitedPlaces.value = discoveries.size
+                watchedVideos.value = discoveries.count { it.watchedAt != null }
+            } catch (e: Exception) {
+                toast("No se pudo cargar el progreso del jugador")
+            } finally {
+                loading.value = false
+            }
         }
-        button("🗺️ Mapa de Santiago") {go("map")}
-        button("☀️ Clima de Santiago (API externa)") {go("weather")}
-        button("🌐 Lugares del servidor (API REST)") {go("remote")}
-        button("📷 Escanear QR") {go("scan")}
-        button("📚 Mi colección") {go("collection")}
-        button("🏆 Puntaje y progreso") {go("progress")}
-        button("🕒 Historial") {go("history")}
-        button("🔔 Notificaciones") {go("notifications")}
-        button("👤 Perfil y configuración") {go("profile")}
     }
+
     /** Muestra información real de una API REST, con estados de carga y error. */
     private fun weather() {
         setup("Clima de Santiago", "Información desde Open-Meteo · API REST externa")
