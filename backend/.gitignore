@@ -4,3 +4,8 @@
 .env
 *.jks
 *.keystore
+
+/target/
+/data/
+*.db
+*.trace.db

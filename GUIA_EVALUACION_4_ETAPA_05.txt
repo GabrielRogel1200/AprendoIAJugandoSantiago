@@ -1,0 +1,36 @@
+ETAPA 05 — PRUEBAS AUTOMATIZADAS Y COBERTURA
+
+Esta versión es acumulativa respecto a Etapa 04: conserva Android, dashboard Compose, OpenStreetMap, QR, Retrofit y backend.
+
+NUEVO
+- 24 pruebas unitarias Android (12 formularios, 7 descripciones meteorológicas y 5 validaciones URL) adicionales a las 5 ya existentes.
+- 2 pruebas de integración de CRUD Spring Boot adicionales a las pruebas de escaneos QR existentes.
+- Plugin JaCoCo de Maven para generar un reporte REAL de cobertura del backend con `verify`.
+
+COMO INSTALAR
+1. Hacer copia de seguridad de la carpeta con .git.
+2. Copiar el CONTENIDO de esta carpeta a la carpeta clonada del repositorio; reemplazar archivos.
+3. No borrar .git. No copiar archivos generados target/, build/, .gradle/.
+
+PRUEBAS ANDROID (PowerShell desde la raiz del proyecto)
+  .\gradlew.bat testDebugUnitTest
+  .\gradlew.bat assembleDebug
+Resultados HTML: app/build/reports/tests/testDebugUnitTest/index.html
+
+PRUEBAS BACKEND (PowerShell en carpeta backend)
+  & "C:\Maven\apache-maven-3.10.1\bin\mvn.cmd" clean verify
+Reporte de cobertura backend: backend/target/site/jacoco/index.html
+
+IMPORTANTE SOBRE EL 80%:
+La pauta requiere al menos un 80% de la lógica. Esta entrega incrementa los casos comprobados, pero NO garantiza ni certifica 80%.
+JaCoCo incluido mide el backend, NO la aplicación Android completa. Se necesita medir también cobertura Android
+(especialmente ViewModels y repositorios), completar casos faltantes y verificar porcentajes reales.
+
+COMMIT (solo cuando AMBOS tests + build terminen bien y antes del plazo permitido):
+  git status
+  git add .
+  git diff --cached --stat
+  git commit -m "test: ampliar pruebas de validacion y CRUD y medir cobertura backend"
+  git push origin main
+
+No incluir en GitHub: backend/target/, app/build/, llaves, contraseñas, datos reales de H2.
