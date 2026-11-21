@@ -33,6 +33,9 @@ import cl.triskeledu.aprendoia.domain.FormValidators
 import cl.triskeledu.aprendoia.domain.PasswordHasher
 import cl.triskeledu.aprendoia.domain.WeatherDescription
 import cl.triskeledu.aprendoia.data.remote.WeatherRepository
+import cl.triskeledu.aprendoia.data.remote.BackendRepository
+import cl.triskeledu.aprendoia.data.remote.ServerPoint
+import cl.triskeledu.aprendoia.data.remote.ServerPointInput
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.flow.first
@@ -179,6 +182,7 @@ class AppScreenActivity: AppCompatActivity() {
             "dashboard" -> dashboard()
             "map" -> map()
             "weather" -> weather()
+            "remote" -> remotePoints()
             "point" -> point()
             "scan" -> scan()
             "qrresult" -> qrResult()
@@ -268,6 +272,7 @@ class AppScreenActivity: AppCompatActivity() {
         }
         button("🗺️ Mapa de Santiago") {go("map")}
         button("☀️ Clima de Santiago (API externa)") {go("weather")}
+        button("🌐 Lugares del servidor (API REST)") {go("remote")}
         button("📷 Escanear QR") {go("scan")}
         button("📚 Mi colección") {go("collection")}
         button("🏆 Puntaje y progreso") {go("progress")}
@@ -297,6 +302,124 @@ class AppScreenActivity: AppCompatActivity() {
             }
         }
     }
+
+/** Pantalla conectada al backend. No modifica la colección Room local por accidente. */
+private fun remotePoints() {
+    setup("Lugares en el servidor", "API REST real · Spring Boot + Retrofit")
+    text("Esta pantalla consulta el servidor. Los descubrimientos QR del jugador todavía se guardan en Room: no hay sincronización automática.", 14)
+    val url = field("Dirección del servidor", BackendRepository.savedUrl(this))
+    button("💾 Guardar dirección del servidor") {
+        try {
+            BackendRepository.saveUrl(this, url.text.toString())
+            toast("Dirección guardada. Consulta los lugares para probar la conexión.")
+        } catch (e: IllegalArgumentException) { url.error = e.message }
+    }
+    text("Emulador: http://10.0.2.2:8080/  ·  Teléfono físico: http://IP-DE-TU-PC:8080/ (misma red Wi-Fi).", 13)
+    val status = text("Conectando con Spring Boot…", 16, true)
+    button("🔄 Consultar lugares (GET)") { render() }
+    val server = BackendRepository(this)
+    lifecycleScope.launch {
+        val currentUser = actions.user(userId)
+        val canEdit = currentUser?.role == "ADMIN"
+        try {
+            val points = server.listPoints()
+            status.text = "✅ Servidor conectado. ${points.size} lugares disponibles."
+            if (points.isEmpty()) text("El backend no contiene lugares todavía.")
+            points.forEach { item ->
+                button("📍 ${item.title} · ${item.points} puntos") {
+                    AlertDialog.Builder(this@AppScreenActivity)
+                        .setTitle(item.title).setMessage(item.description + "\n\nQR: " + item.qrPayload)
+                        .setPositiveButton("Cerrar", null).show()
+                }
+                if (canEdit) {
+                    button("✏️ Editar en servidor: ${item.title}") { editRemotePoint(item) }
+                    button("🗑️ Eliminar del servidor: ${item.title}") {
+                        AlertDialog.Builder(this@AppScreenActivity)
+                            .setTitle("Eliminar ${item.title} del servidor")
+                            .setMessage("Esta acción modifica la base de datos del servidor. No elimina automáticamente el registro local de Room.")
+                            .setNegativeButton("Cancelar", null)
+                            .setPositiveButton("Eliminar") { _, _ ->
+                                lifecycleScope.launch {
+                                    try { server.removePoint(item.id); toast("Lugar eliminado del servidor"); render() }
+                                    catch (e: Exception) { toast("No se pudo eliminar: ${e.message}") }
+                                }
+                            }.show()
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            status.text = "❌ No se pudo conectar al servidor. Verifica que Spring Boot esté encendido, la IP y la conexión Wi-Fi.\nDetalle: ${e.localizedMessage ?: "Error de red"}"
+        }
+        if (canEdit) {
+            text("Crear un lugar en el servidor (POST)", 19, true)
+            remotePointForm(server)
+        } else {
+            text("La edición del servidor está disponible solamente para el Administrador de demostración.", 13)
+        }
+    }
+}
+
+private fun editRemotePoint(item: ServerPoint) {
+    val container = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(20.dp(), 12.dp(), 20.dp(), 12.dp()) }
+    val titleInput = EditText(this).apply { hint = "Nombre"; setText(item.title) }
+    val descInput = EditText(this).apply { hint = "Descripción"; setText(item.description) }
+    val pointsInput = EditText(this).apply { hint = "Puntos (1 a 100)"; inputType = InputType.TYPE_CLASS_NUMBER; setText(item.points.toString()) }
+    container.addView(titleInput); container.addView(descInput); container.addView(pointsInput)
+    var coordinate = GeoPoint(item.latitude, item.longitude)
+    val dialog = AlertDialog.Builder(this).setTitle("Editar ${item.title} en Spring Boot")
+        .setView(container).setNegativeButton("Cancelar", null).setPositiveButton("Guardar", null).create()
+    val mapButton = Button(this).apply {
+        text = "📍 Cambiar ubicación en el mapa"
+        setOnClickListener { choosePlaceOnMap { coordinate = it; toast("Nueva ubicación seleccionada") } }
+    }
+    container.addView(mapButton)
+    dialog.setOnShowListener {
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val count = pointsInput.text.toString().toIntOrNull()
+            if (titleInput.text.toString().trim().length < 3) { titleInput.error = "Mínimo 3 caracteres"; return@setOnClickListener }
+            if (descInput.text.toString().isBlank()) { descInput.error = "Escribe una descripción"; return@setOnClickListener }
+            if (count == null || count !in 1..100) { pointsInput.error = "Entre 1 y 100 puntos"; return@setOnClickListener }
+            lifecycleScope.launch {
+                try {
+                    BackendRepository(this@AppScreenActivity).changePoint(item.id, ServerPointInput(
+                        titleInput.text.toString().trim(), descInput.text.toString().trim(),
+                        coordinate.latitude, coordinate.longitude, item.qrPayload, count
+                    ))
+                    dialog.dismiss(); toast("Lugar actualizado en el servidor"); render()
+                } catch (e: Exception) { toast("Error al actualizar: ${e.localizedMessage}") }
+            }
+        }
+    }
+    dialog.show()
+}
+
+private fun remotePointForm(server: BackendRepository) {
+    val titleInput = field("Nombre del lugar en servidor")
+    val descriptionInput = field("Descripción educativa")
+    val pointsInput = field("Puntos (1 a 100)", "10")
+    var chosen: GeoPoint? = null
+    val hint = text("Selecciona un sitio en el mapa", 13)
+    button("📍 Seleccionar ubicación del nuevo lugar") {
+        choosePlaceOnMap { chosen = it; hint.text = "✅ Ubicación seleccionada" }
+    }
+    button("➕ Crear lugar en Spring Boot") {
+        val title = titleInput.text.toString().trim()
+        val description = descriptionInput.text.toString().trim()
+        val points = pointsInput.text.toString().toIntOrNull()
+        val place = chosen
+        if (title.length < 3) { titleInput.error = "Mínimo 3 caracteres"; return@button }
+        if (description.isBlank()) { descriptionInput.error = "Describe el sitio"; return@button }
+        if (points == null || points !in 1..100) { pointsInput.error = "Entre 1 y 100 puntos"; return@button }
+        if (place == null) { toast("Selecciona un lugar en el mapa"); return@button }
+        val qr = "TRISKEL-" + java.util.UUID.randomUUID().toString().uppercase(Locale.ROOT)
+        lifecycleScope.launch {
+            try {
+                server.addPoint(ServerPointInput(title, description, place.latitude, place.longitude, qr, points))
+                toast("Punto creado en Spring Boot"); render()
+            } catch (e: Exception) { toast("Error al crear: ${e.localizedMessage}") }
+        }
+    }
+}
 
     /** Mapa de calles reales basado en OpenStreetMap, integrado en esta actividad. */
     private fun newStreetMap(center:GeoPoint=GeoPoint(-33.4400,-70.6490),zoom:Double=15.0):MapView =
@@ -557,6 +680,7 @@ class AppScreenActivity: AppCompatActivity() {
     private fun admin() {
         setup("Panel Administrador","Gestiona perfiles, puntos turísticos y contenidos")
         button("🗺️ Ver puntos") {go("map")}
+        button("🌐 Gestionar lugares en Spring Boot") {go("remote")}
         button("🔔 Notificaciones") {go("notifications")}
         text("Crear punto turístico",20,true)
         val title=field("Nombre del lugar");val desc=field("Descripción")

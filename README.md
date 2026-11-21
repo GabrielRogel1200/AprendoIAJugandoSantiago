@@ -90,3 +90,7 @@ Se integra [Open-Meteo](https://open-meteo.com/en/docs) mediante Retrofit 2.11.0
 
 ## Evaluación Parcial 4 — Etapa 02
 Se añadió `backend/`, microservicio REST Spring Boot independiente con H2 para lugares y registro QR una sola vez por jugador. **El Android aún no está conectado al backend**; ver `backend/README.md` para instalar, probar y conocer limitaciones de seguridad.
+
+
+## EP4 Etapa 03 — App conectada a Spring Boot
+La vista **Lugares del servidor** consulta la API `GET /api/v1/points` con Retrofit. La cuenta Administrador puede usar una interfaz de demostración para crear, editar y eliminar lugares por POST/PUT/DELETE; la autenticación del servidor aún no está implementada. El flujo de QR del jugador sigue funcionando localmente con Room (sin sincronización automática). Dirección inicial del emulador: `http://10.0.2.2:8080/`; para teléfono físico usar IP LAN del PC. HTTP habilitado exclusivamente en `debug`. Ver `GUIA_EVALUACION_4_ETAPA_03.txt`.

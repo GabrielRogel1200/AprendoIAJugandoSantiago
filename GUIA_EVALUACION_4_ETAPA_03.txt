@@ -1,0 +1,36 @@
+EVALUACIÓN PARCIAL 4 — ETAPA 03: RETROFIT + SPRING BOOT
+
+INSTRUCCIONES
+1. Copia el contenido de este ZIP sobre la carpeta del repositorio clonado (no borres .git).
+2. Sincroniza Gradle. Abre el proyecto en Android Studio y compílalo.
+3. En la carpeta backend ejecuta, con Maven instalado:
+   mvn test
+   mvn spring-boot:run
+4. Desde el emulador Android, inicia sesión como jugador, entra en «Lugares del servidor (API REST)».
+   Dirección predeterminada: http://10.0.2.2:8080/
+   En teléfono físico cambia la URL por http://IP_LOCAL_DE_TU_PC:8080/ usando el mismo Wi-Fi.
+   Ejemplo: http://192.168.1.15:8080/ (NO es una IP predeterminada).
+   El firewall de Windows debe permitir el puerto 8080 solo en la red privada de confianza.
+5. Presiona «Consultar lugares (GET)» y observa los registros recibidos del servidor.
+6. Con rol ADMIN, entra en «Gestionar lugares en Spring Boot»: prueba crear, editar y borrar
+   un punto de prueba (POST, PUT, DELETE). Selecciona la ubicación sobre el mapa.
+7. Comprueba que los cuatro puntos de demostración siguen estando disponibles si no los modificaste.
+8. Ejecuta pruebas unitarias Android: gradlew.bat :app:testDebugUnitTest (desde Windows),
+   y Maven backend: mvn test.
+
+IMPORTANTE
+- No es sincronización total con Room. Los QR y puntajes del flujo local de jugador siguen
+  gestionados por Room. La nueva pantalla consulta y modifica datos de la API de Spring Boot.
+- Esto es un BACKEND DE DEMOSTRACIÓN sin login/autorización del lado servidor. El control del rol
+  en Android NO es una protección de seguridad. NO lo publiques en Internet.
+- Para pruebas con un teléfono físico usa la IP de tu PC, no localhost ni 10.0.2.2.
+- HTTP se permite solo en compilaciones debug; release debe usar HTTPS.
+- No hice compilación Android real en este entorno. Compruébala antes de crear el commit.
+- Si tu fecha límite de entrega ya pasó, consulta al profesor antes de hacer cambios en GitHub.
+
+COMMIT SUGERIDO (solo después de pruebas):
+git status
+git add .
+git diff --cached --stat
+git commit -m "feat: conectar Android con microservicio Spring Boot mediante Retrofit"
+git push origin main

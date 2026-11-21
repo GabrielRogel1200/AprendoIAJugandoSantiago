@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- SOLO debug: permite acceder a un Spring Boot local sobre HTTP. Release requiere HTTPS. -->
+    <application android:usesCleartextTraffic="true" />
+</manifest>
