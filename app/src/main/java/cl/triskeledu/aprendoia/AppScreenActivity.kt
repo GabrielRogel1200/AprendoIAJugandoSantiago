@@ -31,6 +31,8 @@ import cl.triskeledu.aprendoia.data.repository.*
 import cl.triskeledu.aprendoia.domain.AuthValidator
 import cl.triskeledu.aprendoia.domain.FormValidators
 import cl.triskeledu.aprendoia.domain.PasswordHasher
+import cl.triskeledu.aprendoia.domain.WeatherDescription
+import cl.triskeledu.aprendoia.data.remote.WeatherRepository
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.flow.first
@@ -176,6 +178,7 @@ class AppScreenActivity: AppCompatActivity() {
             "login" -> login()
             "dashboard" -> dashboard()
             "map" -> map()
+            "weather" -> weather()
             "point" -> point()
             "scan" -> scan()
             "qrresult" -> qrResult()
@@ -264,6 +267,7 @@ class AppScreenActivity: AppCompatActivity() {
             text("${found.count{it.watchedAt!=null}} videos revisados · ${found.size} lugares visitados")
         }
         button("🗺️ Mapa de Santiago") {go("map")}
+        button("☀️ Clima de Santiago (API externa)") {go("weather")}
         button("📷 Escanear QR") {go("scan")}
         button("📚 Mi colección") {go("collection")}
         button("🏆 Puntaje y progreso") {go("progress")}
@@ -271,6 +275,29 @@ class AppScreenActivity: AppCompatActivity() {
         button("🔔 Notificaciones") {go("notifications")}
         button("👤 Perfil y configuración") {go("profile")}
     }
+    /** Muestra información real de una API REST, con estados de carga y error. */
+    private fun weather() {
+        setup("Clima de Santiago", "Información desde Open-Meteo · API REST externa")
+        text("Consulta meteorológica para planificar tus recorridos por la ciudad.")
+        val status=text("Consultando el servicio meteorológico…",18,true)
+        button("🔄 Actualizar clima") { go("weather"); finish() }
+        lifecycleScope.launch {
+            try {
+                val result=WeatherRepository().currentInSantiago()
+                status.text = buildString {
+                    append("🌤️ ${WeatherDescription.fromCode(result.weatherCode)}\n\n")
+                    append("🌡️ Temperatura: ${result.temperatureCelsius ?: "—"} °C\n")
+                    append("💧 Humedad: ${result.humidityPercent ?: "—"} %\n")
+                    append("💨 Viento: ${result.windSpeedKmh ?: "—"} km/h\n")
+                    append("🕒 Fecha/hora: ${result.time ?: "Sin datos"}\n\n")
+                    append("Fuente: Open-Meteo (pronóstico/modelos meteorológicos).")
+                }
+            } catch (e: Exception) {
+                status.text="No se pudo consultar el clima. Verifica tu conexión a Internet y vuelve a intentar."
+            }
+        }
+    }
+
     /** Mapa de calles reales basado en OpenStreetMap, integrado en esta actividad. */
     private fun newStreetMap(center:GeoPoint=GeoPoint(-33.4400,-70.6490),zoom:Double=15.0):MapView =
         MapView(this).apply {

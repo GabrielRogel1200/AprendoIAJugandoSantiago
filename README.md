@@ -81,3 +81,8 @@ Mantener commits auténticos que describan cambios realmente implementados y com
 - Selecciona un marcador para leer la descripción y entrar al punto turístico.
 - Requiere conexión a Internet para cargar mosaicos nuevos, sujetos a disponibilidad y política de uso de OpenStreetMap. No utiliza Google Maps.
 - El escaneo QR de un lugar sigue otorgando puntos solo una vez **por perfil** y conserva la protección en Room.
+
+
+## Evaluación Parcial 4 — Etapa 01: API externa
+
+Se integra [Open-Meteo](https://open-meteo.com/en/docs) mediante Retrofit 2.11.0 y Gson en `data/remote`, con una pantalla de **Clima de Santiago** desde el panel del jugador. Se muestran temperatura, humedad, viento, fecha/hora y descripción; hay un estado de error y un botón para reintentar. El endpoint usado es `GET https://api.open-meteo.com/v1/forecast` con `latitude`, `longitude`, `current` y `timezone`. Se incorporan tres pruebas unitarias iniciales para la traducción de códigos meteorológicos. No constituye el 80% de cobertura exigido. **Pendiente:** Spring Boot, Compose, pruebas adicionales y APK firmado. Consultar `GUIA_EVALUACION_4_ETAPA_01.txt`.

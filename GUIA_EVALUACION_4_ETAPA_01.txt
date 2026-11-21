@@ -1,0 +1,41 @@
+EVALUACIÓN PARCIAL 4 — ETAPA 01: API EXTERNA REST CON RETROFIT
+
+Esta versión conserva mapa OpenStreetMap, generador QR, roles y Room.
+
+CAMBIOS REALES:
+- Se agregan Retrofit y Gson a app/build.gradle.kts.
+- Nuevo servicio WeatherApi para Open-Meteo, endpoint GET /v1/forecast.
+- WeatherRepository desacopla la comunicación de la interfaz.
+- WeatherDescription traduce códigos meteorológicos a español.
+- Nueva pantalla "Clima de Santiago (API externa)" desde panel del jugador.
+- Estados de carga, error y actualización manual.
+- 3 pruebas unitarias de descripción meteorológica con JUnit4.
+
+PASOS:
+1. Respaldar el proyecto actual que contiene la carpeta .git.
+2. Extraer el ZIP y copiar sus archivos a la carpeta del proyecto conectado a GitHub.
+3. NO borrar .git ni local.properties, NO sobreescribir configuraciones locales.
+4. Android Studio: Sync Project with Gradle Files (requiere Internet para Retrofit).
+5. Build > Make Project. Corregir cualquier error antes de publicar.
+6. Ejecutar en teléfono/emulador, ingresar como jugador y abrir "Clima de Santiago".
+7. Confirmar que muestra datos, que existe carga/error y que el botón actualizar responde.
+8. Ejecutar prueba: ./gradlew testDebugUnitTest (en Git Bash: ./gradlew testDebugUnitTest).
+9. Revisar git diff y luego crear commit real.
+
+GIT BASH (solo después de validar):
+git status
+git add .
+git diff --cached --stat
+git commit -m "feat: consumir API externa de clima con Retrofit"
+git push origin main
+
+PENDIENTE PARA OTRAS ETAPAS DE EVALUACIÓN PARCIAL 4:
+- Backend Spring Boot y API propia; integración CRUD Android/backend.
+- Migrar las interfaces XML/Views a Jetpack Compose.
+- Más pruebas y medición real de cobertura >=80%.
+- APK release firmado (sin publicar llaves privadas reales), documentación y Trello.
+
+LIMITACIONES:
+- No se compiló en Android Studio en este entorno: se debe verificar localmente.
+- La API climatológica requiere Internet; no se guardan datos meteorológicos en Room.
+- La API entrega modelos meteorológicos, no observaciones garantizadas en terreno.
