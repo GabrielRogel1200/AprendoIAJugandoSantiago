@@ -1,0 +1,22 @@
+EVALUACIÓN PARCIAL 4 — ETAPA 02: MICROSERVICIO SPRING BOOT
+
+1. Este ZIP contiene el proyecto Android de Etapa 01 + la carpeta NUEVA backend/.
+2. Extraer y copiar TODO el contenido a la carpeta local clonada desde GitHub; mantener .git intacto.
+3. Android Studio: abrir la raíz y comprobar que la app Android continúa compilando.
+4. Para ejecutar el backend, abrir terminal en backend/ y ejecutar:
+   mvn test
+   mvn spring-boot:run
+5. Abrir http://localhost:8080/api/v1/points en navegador.
+6. Para probar QR una vez, seguir los comandos de backend/README.md en PowerShell.
+7. Cuando todo funcione, en Git Bash desde la RAÍZ del repositorio:
+   git status
+   git add backend README.md GUIA_EVALUACION_4_ETAPA_02.txt
+   git diff --cached --stat
+   git commit -m "feat: agregar microservicio Spring Boot de lugares y QR"
+   git push origin main
+
+IMPORTANTE:
+- En esta etapa el backend NO está conectado aún a la aplicación Android.
+- El servidor no implementa seguridad/autenticación, SOLO se debe usar localmente en pruebas académicas.
+- Si Maven no está instalado, se puede instalar Apache Maven o abrir pom.xml con IntelliJ.
+- No editar el repositorio después de la fecha límite académica.

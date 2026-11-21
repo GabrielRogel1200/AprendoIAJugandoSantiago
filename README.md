@@ -86,3 +86,7 @@ Mantener commits auténticos que describan cambios realmente implementados y com
 ## Evaluación Parcial 4 — Etapa 01: API externa
 
 Se integra [Open-Meteo](https://open-meteo.com/en/docs) mediante Retrofit 2.11.0 y Gson en `data/remote`, con una pantalla de **Clima de Santiago** desde el panel del jugador. Se muestran temperatura, humedad, viento, fecha/hora y descripción; hay un estado de error y un botón para reintentar. El endpoint usado es `GET https://api.open-meteo.com/v1/forecast` con `latitude`, `longitude`, `current` y `timezone`. Se incorporan tres pruebas unitarias iniciales para la traducción de códigos meteorológicos. No constituye el 80% de cobertura exigido. **Pendiente:** Spring Boot, Compose, pruebas adicionales y APK firmado. Consultar `GUIA_EVALUACION_4_ETAPA_01.txt`.
+
+
+## Evaluación Parcial 4 — Etapa 02
+Se añadió `backend/`, microservicio REST Spring Boot independiente con H2 para lugares y registro QR una sola vez por jugador. **El Android aún no está conectado al backend**; ver `backend/README.md` para instalar, probar y conocer limitaciones de seguridad.
