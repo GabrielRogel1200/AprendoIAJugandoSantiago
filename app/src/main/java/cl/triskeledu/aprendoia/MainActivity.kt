@@ -21,6 +21,13 @@ class MainActivity : AppCompatActivity() {
 
         Log.d("AprendoIA", "Pantalla XML cargada")
 
+        // Bienvenida con animación ligera de entrada.
+        findViewById<android.view.View>(R.id.txtTitulo).apply {
+            alpha = 0f
+            translationY = 28f * resources.displayMetrics.density
+            animate().alpha(1f).translationY(0f).setDuration(650L).start()
+        }
+
         // Conectar botón Comenzar
         val btnComenzar =
             findViewById<Button>(R.id.btnComenzar)

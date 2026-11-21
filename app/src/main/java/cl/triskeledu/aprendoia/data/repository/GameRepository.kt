@@ -4,7 +4,7 @@ import cl.triskeledu.aprendoia.data.database.AppDatabase
 import cl.triskeledu.aprendoia.data.entities.*
 import cl.triskeledu.aprendoia.domain.*
 
-sealed interface ScanResult { data class Awarded(val point:PointEntity,val points:Int):ScanResult; data object AlreadyFound:ScanResult; data object InvalidQr:ScanResult; data object Unauthorized:ScanResult }
+sealed interface ScanResult { data class Awarded(val point:PointEntity,val points:Int):ScanResult; data class AlreadyFound(val point:PointEntity):ScanResult; data object InvalidQr:ScanResult; data object Unauthorized:ScanResult }
 class GameRepository(private val db:AppDatabase) {
     private val dao=db.gameDao()
     fun users()=dao.observeUsers()
@@ -28,7 +28,7 @@ class GameRepository(private val db:AppDatabase) {
         val user=dao.userById(userId) ?: return@withTransaction ScanResult.Unauthorized
         if(user.role!="CLIENT") return@withTransaction ScanResult.Unauthorized
         val point=dao.pointByQr(payload) ?: return@withTransaction ScanResult.InvalidQr
-        if(dao.discovery(userId,point.id)!=null) return@withTransaction ScanResult.AlreadyFound
+        if(dao.discovery(userId,point.id)!=null) return@withTransaction ScanResult.AlreadyFound(point)
         val points=(10000-dao.totalPoints(userId)).coerceIn(0,10).coerceAtMost(10)
         dao.insertDiscovery(DiscoveryEntity(userId=userId,pointId=point.id,videoId=point.videoId))
         dao.insertActivity(ActivityEntity(userId=userId,kind="QR",description="QR: ${point.title}",points=points))

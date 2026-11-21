@@ -6,13 +6,13 @@
     android:orientation="vertical"
     android:gravity="center"
     android:padding="24dp"
-    android:background="#EAF3FF">
+    android:background="@drawable/bg_welcome_gradient">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="🤖"
-        android:textSize="75sp"
+        android:textSize="83sp"
         android:gravity="center" />
 
     <TextView
@@ -22,7 +22,7 @@
         android:text="Aprendo IA Jugando en Santiago"
         android:textSize="28sp"
         android:textStyle="bold"
-        android:textColor="#123A70"
+        android:textColor="#FFFFFF"
         android:gravity="center"
         android:layout_marginTop="20dp" />
 
@@ -31,14 +31,15 @@
         android:layout_height="wrap_content"
         android:text="¡Descubre, aprende y gana puntos explorando Santiago!"
         android:textSize="17sp"
-        android:textColor="#475569"
+        android:textColor="#E4E9FC"
         android:gravity="center"
         android:layout_marginTop="16dp" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="📍 Explora lugares turísticos&#10;📷 Escanea códigos QR&#10;🏆 Acumula puntos y aprende IA"
+        android:text="🗺️ Explora nuestro mapa&#10;📷 Descubre lugares con códigos QR&#10;🏆 Gana puntos una sola vez por lugar"
+        android:textColor="#FFFFFF"
         android:textSize="17sp"
         android:lineSpacingExtra="12dp"
         android:layout_marginTop="36dp"
@@ -50,6 +51,6 @@
         android:layout_height="56dp"
         android:text="Comenzar"
         android:textSize="18sp"
-        android:backgroundTint="#1769E0" />
+        android:backgroundTint="#00AFA8" />
 
 </LinearLayout>

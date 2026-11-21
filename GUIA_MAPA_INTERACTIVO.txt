@@ -1,0 +1,12 @@
+MEJORA: MAPA DE CALLES Y SELECCION VISUAL DE PUNTOS
+
+1. Descomprime este ZIP y copia el contenido de AprendoIAJugandoSantiago-main en la carpeta local vinculada a GitHub. No borres .git.
+2. Android Studio: Sync Project with Gradle Files, con Internet habilitado para descargar osmdroid 6.1.20.
+3. Build > Make Project. Comprueba errores antes de continuar.
+4. Abre mapa: desplaza con un dedo, zoom con dos dedos y pulsa marcadores.
+5. Inicia como GenCont: crea contenido, toca 'Seleccionar lugar en el mapa', mueve/zoom y toca un sitio. Confirma 'Usar este lugar'. Genera QR.
+6. Prueba el QR con el jugador: primer escaneo da puntos, segundo +0 (por usuario).
+7. Revisa el creador/administrador: no se piden latitud y longitud en formularios.
+8. Solo tras compilar y probar: git status; git add .; git commit -m "feat: integrar mapa OSM y seleccion tactil de ubicaciones"; git push origin main
+
+NOTA: Mosaicos de OpenStreetMap requieren red; no es Google Maps, ni ofrece rutas turn-by-turn. La app guarda las coordenadas aunque no las muestre. La libreria osmdroid 6.1.20 fue archivada por sus autores; conviene evaluar una alternativa mantenida para una publicacion comercial.

@@ -8,6 +8,10 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.Bitmap
+import android.graphics.drawable.GradientDrawable
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.qrcode.QRCodeWriter
+import android.graphics.Bitmap.Config
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
@@ -34,6 +38,13 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.MapEventsOverlay
+import org.osmdroid.events.MapEventsReceiver
 
 /** Navegador académico de las 15 pantallas. Los datos se consultan en Room, por perfil. */
 class AppScreenActivity: AppCompatActivity() {
@@ -44,14 +55,17 @@ class AppScreenActivity: AppCompatActivity() {
     private var userId:Long=0
     private var pointId:Long=0
     private var screen="dashboard"
-    private val blue=Color.rgb(18,58,112)
+    private val blue=Color.rgb(17,46,83)
+    private val teal=Color.rgb(0,148,146)
+    private val purple=Color.rgb(83,70,172)
+    private val currentScore get() = intent.getIntExtra("score",0)
     private val scanner=registerForActivityResult(ScanContract()) { result ->
         val value=result.contents
         if(value.isNullOrBlank()) toast("Escaneo cancelado")
         else lifecycleScope.launch {
             when(val result=repo.scanQr(userId,value.trim())) {
                 is ScanResult.Awarded -> go("qrresult",result.point.id, result.points)
-                ScanResult.AlreadyFound -> toast("Este QR ya fue descubierto por este jugador")
+                is ScanResult.AlreadyFound -> go("qrresult",result.point.id,0)
                 ScanResult.InvalidQr -> toast("QR no registrado en esta aplicación")
                 ScanResult.Unauthorized -> toast("Solo los clientes pueden registrar QR")
             }
@@ -73,6 +87,9 @@ class AppScreenActivity: AppCompatActivity() {
         db=AppDatabase.get(this);actions=AppActions(db);repo=GameRepository(db)
         userId=intent.getLongExtra("userId",0);pointId=intent.getLongExtra("pointId",0)
         screen=intent.getStringExtra("screen")?:"dashboard"
+        // OpenStreetMap requiere identificar la app ante el servidor de mosaicos.
+        Configuration.getInstance().userAgentValue = packageName
+        Configuration.getInstance().load(applicationContext, getSharedPreferences("osm_map", MODE_PRIVATE))
         render()
     }
     private fun go(target:String,point:Long=0,score:Int=0) {
@@ -80,33 +97,59 @@ class AppScreenActivity: AppCompatActivity() {
             .putExtra("userId",userId).putExtra("pointId",point).putExtra("score",score))
     }
     private fun toast(message:String)=Toast.makeText(this,message,Toast.LENGTH_LONG).show()
-    private fun setup(title:String,subtitle:String="") {
-        val scroll=ScrollView(this).apply { setBackgroundColor(Color.rgb(234,243,255));isFillViewport=true }
-        page=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL;setPadding(22,22,22,22) }
-        scroll.addView(page);setContentView(scroll)
-        // Entrada suave que indica al usuario el cambio de pantalla.
-        page.alpha=0f
-        page.translationY=18f * resources.displayMetrics.density
-        page.animate().alpha(1f).translationY(0f).setDuration(260L)
-            .setInterpolator(AccelerateDecelerateInterpolator()).start()
-        if(screen!="login" && screen!="register") {
-            button("← Volver") { finish() }
+    private fun rounded(color:Int,stroke:Int?=null,radius:Float=20f):GradientDrawable =
+        GradientDrawable().apply {
+            cornerRadius=radius*resources.displayMetrics.density
+            setColor(color)
+            if(stroke!=null) setStroke((1.3f*resources.displayMetrics.density).toInt(),stroke)
         }
-        text(title,25,true)
-        if(subtitle.isNotBlank()) text(subtitle,14)
+    private fun setup(title:String,subtitle:String="") {
+        val scroll=ScrollView(this).apply {setBackgroundColor(Color.rgb(244,248,254));isFillViewport=true}
+        page=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL;setPadding(22,24,22,32) }
+        scroll.addView(page);setContentView(scroll)
+        page.alpha=0f;page.translationY=24f * resources.displayMetrics.density
+        page.animate().alpha(1f).translationY(0f).setDuration(330L)
+            .setInterpolator(AccelerateDecelerateInterpolator()).start()
+        if(screen!="login" && screen!="register") button("← Volver") {finish()}
+        val hero=LinearLayout(this).apply {
+            orientation=LinearLayout.VERTICAL
+            setPadding(22,22,22,22)
+            background=GradientDrawable(GradientDrawable.Orientation.TL_BR,intArrayOf(blue,purple,teal)).apply {
+                cornerRadius=24f*resources.displayMetrics.density
+            }
+            elevation=5f*resources.displayMetrics.density
+        }
+        val header=TextView(this).apply {text=title;textSize=26f;setTextColor(Color.WHITE);setTypeface(null,Typeface.BOLD)}
+        hero.addView(header)
+        if(subtitle.isNotBlank()) hero.addView(TextView(this).apply {
+            text=subtitle;textSize=14f;setTextColor(Color.rgb(230,245,255));setPadding(0,10,0,0)
+        })
+        page.addView(hero,LinearLayout.LayoutParams(-1,-2).apply {bottomMargin=16.dp()})
     }
+    private fun Int.dp()=(this*resources.displayMetrics.density).toInt()
     private fun text(value:String,size:Int=16,bold:Boolean=false):TextView {
-        val t=TextView(this).apply { text=value;textSize=size.toFloat();setTextColor(blue);setPadding(4,12,4,12);if(bold)setTypeface(null,Typeface.BOLD) }
+        val t=TextView(this).apply {
+            text=value;textSize=size.toFloat();setTextColor(blue)
+            setPadding(12.dp(),12.dp(),12.dp(),12.dp())
+            if(bold)setTypeface(null,Typeface.BOLD)
+        }
         page.addView(t);return t
     }
     private fun button(label:String,click:()->Unit) {
-        page.addView(Button(this).apply {
-            text=label
-            isAllCaps=false
-            contentDescription=label
-            minHeight=(48*resources.displayMetrics.density).toInt()
-            setOnClickListener { click() }
-        })
+        val b=Button(this).apply {
+            text=label;isAllCaps=false;contentDescription=label
+            textSize=15f;setTextColor(Color.WHITE);setTypeface(null,Typeface.BOLD)
+            background=rounded(if(label.startsWith("←"))purple else teal)
+            elevation=3f*resources.displayMetrics.density
+            minHeight=52.dp()
+            setOnClickListener {
+                animate().scaleX(.97f).scaleY(.97f).setDuration(90L).withEndAction {
+                    animate().scaleX(1f).scaleY(1f).setDuration(130L).start()
+                }.start()
+                click()
+            }
+        }
+        page.addView(b,LinearLayout.LayoutParams(-1,54.dp()).apply {bottomMargin=10.dp()})
     }
     private fun field(hint:String,initial:String="",password:Boolean=false):EditText {
         val e=EditText(this).apply {
@@ -228,13 +271,111 @@ class AppScreenActivity: AppCompatActivity() {
         button("🔔 Notificaciones") {go("notifications")}
         button("👤 Perfil y configuración") {go("profile")}
     }
+    /** Mapa de calles reales basado en OpenStreetMap, integrado en esta actividad. */
+    private fun newStreetMap(center:GeoPoint=GeoPoint(-33.4400,-70.6490),zoom:Double=15.0):MapView =
+        MapView(this).apply {
+            setTileSource(TileSourceFactory.MAPNIK)
+            setMultiTouchControls(true)
+            controller.setZoom(zoom)
+            controller.setCenter(center)
+            minZoomLevel=3.0
+            maxZoomLevel=20.0
+            // El mapa debe recibir los gestos, aunque se encuentre en un ScrollView.
+            setOnTouchListener { v, event ->
+                if(event.actionMasked==android.view.MotionEvent.ACTION_DOWN || event.actionMasked==android.view.MotionEvent.ACTION_MOVE)
+                    v.parent?.requestDisallowInterceptTouchEvent(true)
+                false
+            }
+        }
+
     private fun map() {
-        setup("Mapa de Santiago","Puntos turísticos guardados en Room. Abre el mapa externo para ver las coordenadas.")
-        button("📍 Mi ubicación GPS") {showLocation()}
-        lifecycleScope.launch { db.gameDao().observePoints().first().forEach { p ->
-            button("📍 ${p.title} (${p.latitude}, ${p.longitude})") {go("point",p.id)}
-        } }
+        setup("Explora Santiago", "Mapa interactivo con calles y lugares de aprendizaje")
+        text("🗺️ Desliza para moverte y junta o separa dos dedos para cambiar el zoom.",14)
+        button("📍 Consultar mi ubicación GPS") {showLocation()}
+        if(userId>0) button("📷 Escanear código QR desde el mapa") {go("scan")}
+        lifecycleScope.launch {
+            val points=db.gameDao().observePoints().first()
+            val mapView=newStreetMap()
+            page.addView(mapView,LinearLayout.LayoutParams(-1,500.dp()).apply {bottomMargin=14.dp()})
+            if(points.isNotEmpty()) {
+                points.forEach {p ->
+                    val marker=Marker(mapView).apply {
+                        position=GeoPoint(p.latitude,p.longitude)
+                        title=p.title
+                        snippet=p.description.take(110)
+                        setAnchor(Marker.ANCHOR_CENTER,Marker.ANCHOR_BOTTOM)
+                        setOnMarkerClickListener { m,_ ->
+                            AlertDialog.Builder(this@AppScreenActivity)
+                                .setTitle(p.title).setMessage(p.description)
+                                .setNegativeButton("Seguir explorando",null)
+                                .setPositiveButton("Ver lugar") {_,_ ->go("point",p.id)}.show()
+                            true
+                        }
+                    }
+                    mapView.overlays.add(marker)
+                }
+                mapView.controller.setCenter(GeoPoint(points.map{it.latitude}.average(),points.map{it.longitude}.average()))
+            }
+            text("📌 Lugares disponibles",19,true)
+            points.forEach {p-> button("📍 ${p.title}") {go("point",p.id)} }
+            if(points.isEmpty()) text("Todavía no hay lugares registrados.")
+            text("© OpenStreetMap colaboradores · Requiere conexión para descargar nuevas calles.",12)
+        }
     }
+
+    /** Selección visual: el usuario toca el mapa; los valores geográficos quedan ocultos. */
+    private fun choosePlaceOnMap(onChosen:(GeoPoint)->Unit) {
+        val container=LinearLayout(this).apply {
+            orientation=LinearLayout.VERTICAL
+            setPadding(12.dp(),10.dp(),12.dp(),12.dp())
+        }
+        val instruction=TextView(this).apply {
+            text="Mueve el mapa hasta encontrar el sitio y tócalo para marcarlo. Puedes ampliar con dos dedos."
+            textSize=15f;setPadding(8.dp(),4.dp(),8.dp(),12.dp())
+        }
+        container.addView(instruction)
+        val mapView=newStreetMap(GeoPoint(-33.4400,-70.6490),15.5)
+        container.addView(mapView,LinearLayout.LayoutParams(-1,430.dp()))
+        val selectionLabel=TextView(this).apply {
+            text="Todavía no has elegido un lugar";textSize=15f
+            setPadding(8.dp(),12.dp(),8.dp(),6.dp())
+        }
+        container.addView(selectionLabel)
+        var selected:GeoPoint?=null
+        var marker:Marker?=null
+        val dialog=AlertDialog.Builder(this)
+            .setTitle("Selecciona un punto en Santiago")
+            .setView(container)
+            .setNegativeButton("Cancelar",null)
+            .setPositiveButton("Usar este lugar",null)
+            .create()
+        mapView.overlays.add(MapEventsOverlay(object:MapEventsReceiver {
+            override fun singleTapConfirmedHelper(p:GeoPoint):Boolean {
+                selected=p
+                marker?.let {mapView.overlays.remove(it)}
+                marker=Marker(mapView).apply {
+                    position=p;title="Lugar seleccionado"
+                    setAnchor(Marker.ANCHOR_CENTER,Marker.ANCHOR_BOTTOM)
+                }
+                mapView.overlays.add(marker)
+                selectionLabel.text="✅ Punto seleccionado. Presiona «Usar este lugar» para confirmar."
+                mapView.invalidate()
+                return true
+            }
+            override fun longPressHelper(p:GeoPoint):Boolean=singleTapConfirmedHelper(p)
+        }))
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val place=selected
+                if(place==null) Toast.makeText(this,"Primero toca un sitio del mapa",Toast.LENGTH_SHORT).show()
+                else {onChosen(place);dialog.dismiss()}
+            }
+        }
+        dialog.setOnDismissListener {mapView.onPause();mapView.onDetach()}
+        dialog.show()
+        mapView.onResume()
+    }
+
     private fun showLocation() {
         if(ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED) {
             locationPermission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION));return
@@ -250,14 +391,11 @@ class AppScreenActivity: AppCompatActivity() {
         lifecycleScope.launch {
             val p=actions.point(pointId)?:return@launch
             text(p.title,22,true);text(p.description)
-            text("Latitud: ${p.latitude} · Longitud: ${p.longitude}")
+            text("📍 Ubicación marcada en el mapa interactivo")
             val found=db.gameDao().discovery(userId,p.id)
-            text(if(found==null)"🔒 QR pendiente" else "✅ QR descubierto (+10 puntos si se otorgaron)")
+            text(if(found==null)"🔒 QR pendiente · escanéalo para obtener puntos" else "✅ QR ya descubierto: las próximas lecturas otorgan 0 puntos")
             if(p.isTouristic) text("⭐ Hito turístico: bonificación de selfie sujeta a validación")
-            button("Ver en mapa") {
-                val uri=Uri.parse("geo:${p.latitude},${p.longitude}?q=${p.latitude},${p.longitude}(${Uri.encode(p.title)})")
-                try {startActivity(Intent(Intent.ACTION_VIEW,uri))}catch(e:Exception){toast("Instala una aplicación de mapas")}
-            }
+            button("🗺️ Volver al mapa de la aplicación") {go("map")}
             if(userId>0)button("Escanear QR") {go("scan",p.id)}
             if(found!=null && p.videoId!=null)button("Ver video") {go("video",p.id)}
             if(found!=null && p.isTouristic)button("Selfie turística") {go("selfie",p.id)}
@@ -275,7 +413,7 @@ class AppScreenActivity: AppCompatActivity() {
             lifecycleScope.launch {
                 when(val r=repo.scanQr(userId,input.text.toString().trim())) {
                     is ScanResult.Awarded -> go("qrresult",r.point.id,r.points)
-                    ScanResult.AlreadyFound -> toast("Ya descubierto: no se repiten los puntos")
+                    is ScanResult.AlreadyFound -> go("qrresult",r.point.id,0)
                     ScanResult.InvalidQr -> toast("Código no registrado")
                     ScanResult.Unauthorized -> toast("Acceso no autorizado")
                 }
@@ -283,8 +421,8 @@ class AppScreenActivity: AppCompatActivity() {
         }
     }
     private fun qrResult() {
-        setup("🎉 ¡QR encontrado!")
         val score=intent.getIntExtra("score",0)
+        setup(if(score>0) "🎉 ¡Lugar descubierto!" else "✅ QR ya registrado",if(score>0) "¡Sumaste puntos a tu aventura!" else "Este código ya fue escaneado por tu perfil. No se suman puntos nuevos.")
         val pointsLabel=text("+$score puntos",27,true)
         pointsLabel.scaleX=0.75f;pointsLabel.scaleY=0.75f
         pointsLabel.animate().scaleX(1f).scaleY(1f).setDuration(420L)
@@ -395,15 +533,19 @@ class AppScreenActivity: AppCompatActivity() {
         button("🔔 Notificaciones") {go("notifications")}
         text("Crear punto turístico",20,true)
         val title=field("Nombre del lugar");val desc=field("Descripción")
-        val lat=field("Latitud, ej. -33.4372");val lon=field("Longitud, ej. -70.6506")
+        var chosen:GeoPoint?=null
+        val locationInfo=text("📍 Elige una ubicación en el mapa antes de guardar.",14)
+        button("🗺️ Elegir ubicación en el mapa") {choosePlaceOnMap {place ->
+            chosen=place;locationInfo.text="✅ Ubicación seleccionada en el mapa"
+        }}
         val qr=field("Contenido QR único")
         button("Guardar punto") {lifecycleScope.launch {
-            val errors=FormValidators.point(title.text.toString(),lat.text.toString(),lon.text.toString(),qr.text.toString())
-            title.error=errors["title"];lat.error=errors["latitude"]
-            lon.error=errors["longitude"];qr.error=errors["qr"]
+            val place=chosen
+            if(place==null){toast("Selecciona una ubicación en el mapa");return@launch}
+            val errors=FormValidators.point(title.text.toString(),place.latitude.toString(),place.longitude.toString(),qr.text.toString())
+            title.error=errors["title"];qr.error=errors["qr"]
             if(errors.isNotEmpty()){toast("Revisa los campos marcados");return@launch}
-            val a=lat.text.toString().toDouble();val b=lon.text.toString().toDouble()
-            actions.savePoint(PointEntity(title=title.text.toString(),description=desc.text.toString(),latitude=a,longitude=b,qrPayload=qr.text.toString()))
+            actions.savePoint(PointEntity(title=title.text.toString(),description=desc.text.toString(),latitude=place.latitude,longitude=place.longitude,qrPayload=qr.text.toString()))
             toast("Punto guardado");render()
         }}
         text("Usuarios registrados",20,true)
@@ -421,6 +563,31 @@ class AppScreenActivity: AppCompatActivity() {
     }
     private fun content() {
         setup("Gestión de contenidos","Creador de contenido / Administrador")
+        text("🎫 Generador de códigos QR para lugares",20,true)
+        text("Crea un lugar para asociarlo a un QR único. Compártelo o muéstralo a los jugadores; cada perfil podrá ganar puntos solo en el primer escaneo.",14)
+        val placeTitle=field("Nombre del nuevo lugar")
+        val placeDescription=field("Descripción educativa del lugar")
+        var chosen:GeoPoint?=null
+        val locationInfo=text("📍 Aún no has seleccionado el lugar en el mapa.",14)
+        button("🗺️ Seleccionar lugar en el mapa") {choosePlaceOnMap {place ->
+            chosen=place;locationInfo.text="✅ Ubicación seleccionada; ya puedes crear el QR."
+        }}
+        button("➕ Crear lugar y generar QR") {lifecycleScope.launch {
+            val titleValue=placeTitle.text.toString().trim()
+            val place=chosen
+            if(titleValue.length<3){placeTitle.error="Escribe al menos 3 caracteres";return@launch}
+            if(place==null){toast("Primero selecciona un punto en el mapa");return@launch}
+            val payload="TRISKEL-"+java.util.UUID.randomUUID().toString().uppercase(Locale.ROOT)
+            db.gameDao().insertPoint(PointEntity(title=titleValue,
+                description=placeDescription.text.toString().trim().ifBlank {"Punto de aprendizaje creado por el equipo de contenidos. Descubre sus alrededores y registra tu visita mediante el QR."},
+                latitude=place.latitude,longitude=place.longitude,qrPayload=payload))
+            toast("Lugar creado con QR exclusivo")
+            showQrDialog(titleValue,payload)
+        }}
+        text("📍 Códigos de los lugares disponibles",19,true)
+        lifecycleScope.launch {db.gameDao().observePoints().first().forEach {p ->
+            button("🔳 Generar / mostrar QR: ${p.title}") {showQrDialog(p.title,p.qrPayload)}
+        }}
         text("Nueva cápsula",20,true)
         val title=field("Título");val topic=field("Tema de IA");val author=field("Autor")
         val uri=field("URL de video MP4 o HTTPS");val intro=field("Descripción")
@@ -445,6 +612,28 @@ class AppScreenActivity: AppCompatActivity() {
             }
         }}
         button("Cerrar sesión") {startActivity(Intent(this,SeleccionJugadorActivity::class.java));finish()}
+    }
+    private fun showQrDialog(title:String,payload:String) {
+        try {
+            val dimension=700
+            val matrix=QRCodeWriter().encode(payload,BarcodeFormat.QR_CODE,dimension,dimension)
+            val bitmap=Bitmap.createBitmap(dimension,dimension,Config.ARGB_8888)
+            for(y in 0 until dimension) for(x in 0 until dimension)
+                bitmap.setPixel(x,y,if(matrix[x,y])Color.BLACK else Color.WHITE)
+            val layout=LinearLayout(this).apply {orientation=LinearLayout.VERTICAL;setPadding(16.dp(),12.dp(),16.dp(),12.dp())}
+            layout.addView(ImageView(this).apply {
+                setImageBitmap(bitmap);contentDescription="QR único del lugar $title"
+                adjustViewBounds=true
+            },LinearLayout.LayoutParams(-1,300.dp()))
+            layout.addView(TextView(this).apply {text=payload;textSize=12f;setTextIsSelectable(true);gravity=Gravity.CENTER;setPadding(8.dp(),12.dp(),8.dp(),8.dp())})
+            AlertDialog.Builder(this).setTitle("QR de $title").setView(layout)
+                .setPositiveButton("Cerrar",null)
+                .setNeutralButton("Compartir código") { _,_ ->
+                    startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                        type="text/plain";putExtra(Intent.EXTRA_TEXT,"Lugar: $title\nCódigo QR: $payload")
+                    },"Compartir código"))
+                }.show()
+        } catch(e:Exception) {toast("No se pudo generar el QR: ${e.message}")}
     }
     private fun date(millis:Long)=SimpleDateFormat("dd/MM/yyyy HH:mm",Locale("es","CL")).format(Date(millis))
 }

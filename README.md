@@ -16,12 +16,12 @@ Aplicación Android educativa en **Kotlin**, con **Room**, componentes **MVVM**,
 ## Funcionalidades
 - Bienvenida, selección de perfiles, registro e inicio de sesión.
 - Panel de jugador, administrador y creador de contenido.
-- Listado de puntos turísticos, coordenadas GPS y apertura de mapa externo.
-- Escáner QR, colección, puntaje, progreso e historial.
+- Mapa ilustrado e interactivo incorporado a la app (sin Google Maps), con lugares georreferenciados en una vista esquemática.
+- Generador visual de códigos QR desde el rol Creador, escáner QR, colección, puntaje, progreso e historial. Cada perfil recibe puntos solo la primera vez que registra cada lugar; repetir un QR muestra +0 puntos.
 - Cámara para selfie, reproducción de video, perfil y notificaciones locales.
 - Persistencia de usuarios, puntos y descubrimientos con Room.
 - Validaciones de registro, perfil, puntos y cápsulas de video con mensajes por campo.
-- Animación de entrada de pantallas y animación de puntaje QR.
+- Diseño actualizado con encabezados degradados, botones redondeados, transiciones y animación de puntaje QR.
 - Mejoras de accesibilidad: descripciones y teclados adecuados a los campos.
 
 ## Datos de demostración
@@ -44,23 +44,40 @@ Cada QR válido otorga puntos solo una vez por jugador.
 - `viewmodel`: ViewModels de la aplicación.
 - `AppScreenActivity.kt`: implementación actual de diversas pantallas. **Pendiente:** trasladar toda la lógica de interacción a ViewModels separados para un MVVM completo.
 
+## Novedades de la actualización: mapa, códigos QR y diseño
+1. Inicia como **GenCont / 123**; en Gestión de contenidos crea un lugar con nombre, descripción y coordenadas válidas. Al guardar aparece su QR.
+2. También puedes tocar «Generar / mostrar QR» junto a los puntos ya registrados. El contenido QR permanece asociado a su lugar (no cambies el payload al compartirlo).
+3. En otro teléfono o mostrando el QR impreso, inicia como un **jugador**, abre **Mapa de Santiago → Escanear código QR desde el mapa** y escanea el código.
+4. La primera lectura válida de ese punto otorga hasta 10 puntos. Si escaneas **el mismo código con el mismo perfil** otra vez, se muestra **+0 puntos**. Otro jugador puede obtener sus propios puntos una vez.
+5. Las descripciones ampliadas de los cuatro puntos de demostración se actualizarán al iniciar la app sin borrar los descubrimientos existentes. Las descripciones personalizadas no se sobrescriben.
+6. El QR generado se muestra dentro de la app. La opción «Compartir código» comparte el **texto**, no una imagen PNG; para imprimirlo utiliza una captura de la imagen del QR.
+
 ## Pruebas manuales sugeridas
 1. Registrar un jugador con campos vacíos y verificar errores por campo.
 2. Registrar un jugador válido, cerrar la aplicación y comprobar que el perfil persiste.
 3. Iniciar sesión con los perfiles iniciales y con un jugador nuevo.
 4. Validar campos erróneos en perfil, creación de puntos y videos.
 5. Abrir varias pantallas y comprobar la animación de entrada.
-6. Escanear un QR válido y comprobar que el puntaje no se duplique.
+6. Escanear un QR válido dos veces con el mismo perfil y comprobar +10 (o hasta el límite) primero, +0 después. Comprobar que diferentes usuarios mantienen sus avances separados.
 7. Probar permisos de cámara y ubicación, incluidos los casos de rechazo.
 8. Comprobar funcionamiento en el teléfono físico.
 
 ## Limitaciones conocidas
-- El mapa abre una aplicación externa; no incluye mapa interactivo integrado.
+- El mapa integrado es un **esquema geográfico educativo**, no cartografía de calles ni navegación GPS paso a paso. Funciona sin Google Maps y permite tocar marcadores.
 - La selfie se captura, pero **no** se valida automáticamente rostro y QR ni se entregan los 100 puntos extra sin verificación.
 - Las notificaciones son locales, no push remotas.
-- La gestión administrativa y de contenidos es parcial.
+- La gestión administrativa y de contenidos es parcial. El creador genera QR para los puntos guardados localmente; no existe sincronización entre celulares sin servidor/backend.
 - Las cuentas iniciales con contraseña `123` son para demostración, no producción.
 - No se ha certificado la compilación de las mejoras en todos los dispositivos; probar en Android Studio antes de cada commit.
 
 ## Control de versiones y entrega
 Mantener commits auténticos que describan cambios realmente implementados y comprobados. No alterar el repositorio después del plazo de entrega indicado por el docente. Completar la planificación en Trello o equivalente con tareas y evidencias reales.
+
+
+## Mapa interactivo (OpenStreetMap)
+
+- Mapa real dentro de la aplicación, con calles, gestos de desplazamiento y zoom. Usa la librería `org.osmdroid:osmdroid-android:6.1.20`.
+- El creador y el administrador eligen el lugar tocando el mapa (sin introducir coordenadas manuales); éstas se guardan internamente en Room.
+- Selecciona un marcador para leer la descripción y entrar al punto turístico.
+- Requiere conexión a Internet para cargar mosaicos nuevos, sujetos a disponibilidad y política de uso de OpenStreetMap. No utiliza Google Maps.
+- El escaneo QR de un lugar sigue otorgando puntos solo una vez **por perfil** y conserva la protección en Room.

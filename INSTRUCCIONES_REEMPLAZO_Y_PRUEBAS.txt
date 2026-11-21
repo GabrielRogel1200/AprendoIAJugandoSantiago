@@ -1,0 +1,25 @@
+ACTUALIZACIÓN — Aprendo IA Jugando en Santiago
+
+1. HAZ UNA COPIA DE SEGURIDAD de tu carpeta de Android Studio.
+2. Extrae este ZIP; entra a la carpeta AprendoIAJugandoSantiago-main.
+3. Copia TODO su contenido y pégalo dentro de tu carpeta local conectada con GitHub (la que contiene .git).
+4. Acepta reemplazar archivos. NO BORRES tu carpeta .git, ni reemplaces a ciegas el repositorio remoto.
+5. En Android Studio abre esa carpeta y espera Gradle Sync; ejecuta Build > Make Project.
+6. Prueba las cuentas de demostración Admin/123, GenCont/123 y un jugador registrado.
+7. En GenCont: crea un lugar con nombre, descripción y coordenadas; toca Generar/mostrar QR.
+8. Como jugador: entra a Mapa > Escanear código QR; primera lectura suma puntos, segunda lectura muestra +0.
+9. Confirma que el mapa ilustrado se ve dentro de la aplicación y permite abrir fichas de lugares.
+10. Comprueba los cuatro lugares existentes y sus descripciones ampliadas.
+11. SOLO si compila y funciona, utiliza Git Bash:
+    git status
+    git add .
+    git diff --cached --stat
+    git commit -m "feat: integrar generador QR, mapa propio y mejoras visuales"
+    git push origin main
+    git status
+
+IMPORTANTE:
+- Los QR y descubrimientos se almacenan en Room en EL DISPOSITIVO LOCAL. Entre dos teléfonos no se comparten los puntos si no existe sincronización remota.
+- El mapa incluido es esquemático, NO incluye calles reales ni navegación paso a paso.
+- Este ZIP fue preparado con revisión estática, NO compilado en un SDK Android en este entorno. Es obligatorio probarlo antes del commit.
+- Si el repositorio ya fue entregado oficialmente y está cerrado, NO HAGAS NUEVOS COMMITS: revisa primero las normas del docente.
