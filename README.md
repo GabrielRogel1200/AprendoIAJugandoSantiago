@@ -1,6 +1,6 @@
 # Aprendo IA Jugando en Santiago
 
-Aplicación Android educativa en **Kotlin**, con **Room**, componentes **MVVM**, códigos QR y ubicación del dispositivo. Proyecto académico para **DSY1105 — Evaluación Parcial 2**.
+Aplicación Android educativa en **Kotlin**, con **Room**, componentes **MVVM**, códigos QR y ubicación del dispositivo. Proyecto académico para **DSY1105 — Evaluaciones Parciales 2 y 4**.
 
 ## Responsable
 - Estudiante: Gabriel Rogel.
@@ -16,7 +16,7 @@ Aplicación Android educativa en **Kotlin**, con **Room**, componentes **MVVM**,
 ## Funcionalidades
 - Bienvenida, selección de perfiles, registro e inicio de sesión.
 - Panel de jugador, administrador y creador de contenido.
-- Mapa ilustrado e interactivo incorporado a la app (sin Google Maps), con lugares georreferenciados en una vista esquemática.
+- Mapa interactivo dentro de la app basado en OpenStreetMap/osmdroid, con calles, marcadores, desplazamiento y zoom.
 - Generador visual de códigos QR desde el rol Creador, escáner QR, colección, puntaje, progreso e historial. Cada perfil recibe puntos solo la primera vez que registra cada lugar; repetir un QR muestra +0 puntos.
 - Cámara para selfie, reproducción de video, perfil y notificaciones locales.
 - Persistencia de usuarios, puntos y descubrimientos con Room.
@@ -63,7 +63,7 @@ Cada QR válido otorga puntos solo una vez por jugador.
 8. Comprobar funcionamiento en el teléfono físico.
 
 ## Limitaciones conocidas
-- El mapa integrado es un **esquema geográfico educativo**, no cartografía de calles ni navegación GPS paso a paso. Funciona sin Google Maps y permite tocar marcadores.
+- El mapa utiliza OpenStreetMap dentro de la aplicación, con calles y marcadores; no incluye navegación GPS paso a paso.
 - La selfie se captura, pero **no** se valida automáticamente rostro y QR ni se entregan los 100 puntos extra sin verificación.
 - Las notificaciones son locales, no push remotas.
 - La gestión administrativa y de contenidos es parcial. El creador genera QR para los puntos guardados localmente; no existe sincronización entre celulares sin servidor/backend.
@@ -97,3 +97,12 @@ La vista **Lugares del servidor** consulta la API `GET /api/v1/points` con Retro
 
 ## EP4 Etapa 04: migración incremental a Compose
 El dashboard de jugador utiliza Jetpack Compose + Material 3. Las demás pantallas conservan la implementación Android View/XML hasta fases posteriores. Ver `GUIA_EVALUACION_4_ETAPA_04.txt`.
+
+
+## EP4 Etapa 05: pruebas
+Se agregaron pruebas JVM en Android (`app/src/test`) y pruebas de integración y reporte JaCoCo en backend (`backend/src/test`, `mvn clean verify`). **La cobertura mínima del 80% todavía debe comprobarse con mediciones**, especialmente para Android. Consultar `GUIA_EVALUACION_4_ETAPA_05.txt`.
+
+## EP4 Etapa 06: firma y documentación
+La guía `docs/GUIA_APK_FIRMADO_EP4.md` explica cómo generar una versión release firmada usando Android Studio y una llave privada creada por el estudiante. El archivo `.jks` y el APK de release **no están incluidos ni generados** en esta distribución.
+
+Para la entrega, utilizar `docs/PLAN_PRUEBAS_EP4.md` y `docs/REGISTRO_ENTREGA_EP4.md`, completando solamente evidencias verificadas. Tener en cuenta que el proyecto sigue con migración parcial a Jetpack Compose y que la conexión a backend por HTTP solo se permite en debug.

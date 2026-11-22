@@ -1,0 +1,23 @@
+ETAPA 06 — APK firmado, documentación y entrega
+
+Este ZIP es una copia acumulativa de la Etapa 05 con documentación de release y evidencias.
+NO contiene APK release firmado ni JKS: debes generarlos tú, con tu propia clave, desde Android Studio.
+
+PASOS:
+1. Extrae el ZIP.
+2. Copia su contenido a la carpeta local del repositorio que contiene .git.
+3. No borres archivos locales ni sobrescribas deliberadamente la carpeta .git.
+4. En Android Studio: Sync Gradle y compila `./gradlew assembleDebug`.
+5. Ejecuta `./gradlew testDebugUnitTest` y backend Maven `mvn clean verify`.
+6. Sigue docs/GUIA_APK_FIRMADO_EP4.md para generar APK release firmado.
+7. Completa docs/PLAN_PRUEBAS_EP4.md y docs/REGISTRO_ENTREGA_EP4.md con resultados REALES.
+8. Abre Git Bash, verifica diff y crea un commit solo si los cambios están probados y aún dentro del plazo.
+
+COMANDOS (desde raíz, Git Bash):
+git status
+git add README.md GUIA_EVALUACION_4_ETAPA_06.txt docs/
+git diff --cached --stat
+git commit -m "docs: preparar firma APK y evidencias de entrega EP4"
+git push origin main
+
+ADVERTENCIA: si el docente prohíbe cualquier cambio posterior a la fecha límite, NO realices push después de ella.
